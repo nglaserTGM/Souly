@@ -111,7 +111,8 @@ export default {
   justify-content: center;
   position: relative;
   overflow: hidden;
-  background: url('https://images.unsplash.com/photo-1493225255756-d9584f8606e9?auto=format&fit=crop&q=80') center/cover; /* Platzhalterbild */
+  /* Hier wurde der Pfad zu deinem neuen Bild angepasst */
+  background: url('@/assets/Souly_main.jpg') center/cover; 
 }
 
 .hero-overlay {
