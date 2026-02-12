@@ -17,7 +17,7 @@
       <div class="music-grid">
         <div class="spotify-container">
           <iframe 
-            src="https://open.spotify.com/embed/artist/3S8jF8fWlK6u0n7yC7X0p0?utm_source=generator&theme=0" 
+            src="https://open.spotify.com/embed/artist/1fImPZoBVjmYrBFzCHh0N3?utm_source=generator&theme=0" 
             width="100%" 
             height="380" 
             frameBorder="0" 
@@ -30,9 +30,9 @@
           <h3>SOULEYMAN</h3>
           <p>Das neue Projekt ist jetzt auf allen Streaming-Plattformen verfügbar. Einzigartiger Sound, tiefgreifende Texte – die Evolution eines Künstlers.</p>
           <div class="links">
-            <a href="#" class="platform-link">Apple Music</a>
-            <a href="#" class="platform-link">Spotify</a>
-            <a href="#" class="platform-link">Deezer</a>
+            <a href="https://music.apple.com/at/artist/souly/1451179227" target="_blank" class="platform-link">Apple Music</a>
+            <a href="https://open.spotify.com/intl-de/artist/1fImPZoBVjmYrBFzCHh0N3" target="_blank" class="platform-link">Spotify</a>
+            <a href="https://www.deezer.com/de/artist/12523984" target="_blank" class="platform-link">Deezer</a>
           </div>
         </div>
       </div>
@@ -46,21 +46,12 @@
           <div class="tour-city">{{ show.city }}</div>
           <div class="tour-venue">{{ show.venue }}</div>
           <div class="tour-status">
-            <a v-if="!show.soldOut" :href="show.link" class="ticket-btn">TICKETS</a>
+            <router-link v-if="!show.soldOut" :to="`/tickets/${show.city}`" class="ticket-btn">TICKETS</router-link>
             <span v-else class="sold-out">AUSVERKAUFT</span>
           </div>
         </div>
       </div>
     </section>
-
-    <footer class="footer">
-      <p>&copy; 2024 SOULY. ALL RIGHTS RESERVED.</p>
-      <div class="socials">
-        <a href="#">INSTAGRAM</a>
-        <a href="#">TIKTOK</a>
-        <a href="#">YOUTUBE</a>
-      </div>
-    </footer>
   </div>
 </template>
 
@@ -69,14 +60,38 @@ export default {
   name: 'HomeView',
   data() {
     return {
-      tourDates: [
-        { date: '15.11.2024', city: 'Berlin', venue: 'Huxleys', soldOut: false, link: '#' },
-        { date: '17.11.2024', city: 'Hamburg', venue: 'Uebel & Gefährlich', soldOut: true, link: '#' },
-        { date: '20.11.2024', city: 'Köln', venue: 'Live Music Hall', soldOut: false, link: '#' },
-        { date: '22.11.2024', city: 'München', venue: 'Backstage', soldOut: false, link: '#' },
-        { date: '25.11.2024', city: 'Wien', venue: 'Flex', soldOut: false, link: '#' },
-      ]
+      tourDates: []
     }
+  },
+  mounted() {
+    const venues = [
+      { city: 'Berlin', venue: 'Huxleys', soldOut: false, link: '#' },
+      { city: 'Hamburg', venue: 'Uebel & Gefährlich', soldOut: true, link: '#' },
+      { city: 'Köln', venue: 'Live Music Hall', soldOut: false, link: '#' },
+      { city: 'München', venue: 'Backstage', soldOut: false, link: '#' },
+      { city: 'Wien', venue: 'Flex', soldOut: false, link: '#' },
+    ];
+
+    const formatDate = (date) => {
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}.${month}.${year}`;
+    };
+
+    const today = new Date();
+    let runningDate = new Date();
+    runningDate.setMonth(today.getMonth() + 2); // First date is 2 months from today
+
+    this.tourDates = venues.map((venue, index) => {
+      if (index > 0) {
+        runningDate.setDate(runningDate.getDate() + 3);
+      }
+      return {
+        ...venue,
+        date: formatDate(new Date(runningDate))
+      };
+    });
   }
 }
 </script>
@@ -219,22 +234,6 @@ export default {
   color: #ff4444;
   font-size: 0.8rem;
   text-transform: uppercase;
-}
-
-/* Footer */
-.footer {
-  padding: 50px 10%;
-  border-top: 1px solid #222;
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.8rem;
-  color: #444;
-}
-
-.socials a {
-  color: #fff;
-  margin-left: 20px;
-  text-decoration: none;
 }
 
 /* Mobile Optimierung */
