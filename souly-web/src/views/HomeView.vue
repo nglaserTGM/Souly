@@ -12,6 +12,17 @@
       </div>
     </section>
 
+    <section id="pinwand" class="section pinwand-section" @mousemove="handleMouseMove" @mouseleave="resetImageTransforms">
+      <img 
+        v-for="(image, index) in pinwandImages" 
+        :key="index"
+        :src="image.src"
+        class="pinwand-image"
+        :style="imageStyles[index]"
+        @mouseover="handleMouseOver(index)"
+      />
+    </section>
+
     <section id="music" class="section music-section">
       <h2 class="section-label">Latest Releases</h2>
       <div class="music-grid">
@@ -56,14 +67,55 @@
 </template>
 
 <script>
+import { throttle } from 'lodash';
+
 export default {
   name: 'HomeView',
   data() {
     return {
-      tourDates: []
+      tourDates: [],
+      pinwandImages: [
+        // Store positions as ratios, pixels will be calculated in mounted
+        { src: require('@/assets/pinwand1.jpg'), top: 0.10, left: 0.12, rotation: -15, zIndex: 1, width: '18vw', maxWidth: '240px', topPx: 0, leftPx: 0, currentScale: 1, translateX: 0, translateY: 0 },
+        { src: require('@/assets/pinwand2.jpg'), top: 0.40, left: 0.05, rotation: 10, zIndex: 2, width: '22vw', maxWidth: '290px', topPx: 0, leftPx: 0, currentScale: 1, translateX: 0, translateY: 0 },
+        { src: require('@/assets/pinwand3.jpg'), top: 0.65, left: 0.15, rotation: -5, zIndex: 3, width: '25vw', maxWidth: '320px', topPx: 0, leftPx: 0, currentScale: 1, translateX: 0, translateY: 0 },
+        { src: require('@/assets/pinwand4.jpg'), top: 0.08, left: 0.60, rotation: 20, zIndex: 4, width: '20vw', maxWidth: '260px', topPx: 0, leftPx: 0, currentScale: 1, translateX: 0, translateY: 0 },
+        { src: require('@/assets/pinwand5.jpg'), top: 0.35, left: 0.70, rotation: -12, zIndex: 5, width: '24vw', maxWidth: '310px', topPx: 0, leftPx: 0, currentScale: 1, translateX: 0, translateY: 0 },
+        { src: require('@/assets/pinwand6.jpg'), top: 0.68, left: 0.75, rotation: 8, zIndex: 6, width: '21vw', maxWidth: '280px', topPx: 0, leftPx: 0, currentScale: 1, translateX: 0, translateY: 0 },
+        { src: require('@/assets/pinwand7.jpg'), top: 0.50, left: 0.45, rotation: -2, zIndex: 7, width: '28vw', maxWidth: '360px', topPx: 0, leftPx: 0, currentScale: 1, translateX: 0, translateY: 0 },
+        { src: require('@/assets/pinwand8.jpg'), top: 0.15, left: 0.35, rotation: 5, zIndex: 8, width: '23vw', maxWidth: '300px', topPx: 0, leftPx: 0, currentScale: 1, translateX: 0, translateY: 0 },
+        { src: require('@/assets/pinwand9.jpg'), top: 0.70, left: 0.40, rotation: 15, zIndex: 9, width: '19vw', maxWidth: '250px', topPx: 0, leftPx: 0, currentScale: 1, translateX: 0, translateY: 0 }
+      ],
+      maxZIndex: 9,
+      imageElements: [],
+      mouse: { x: 0, y: 0 },
+      animationFrameId: null,
+    }
+  },
+  computed: {
+    imageStyles() {
+      return this.pinwandImages.map(img => {
+        const { zIndex, width, maxWidth, topPx, leftPx, currentScale, translateX, translateY, rotation } = img;
+        return {
+          top: `${topPx}px`,
+          left: `${leftPx}px`,
+          width,
+          maxWidth,
+          zIndex,
+          transform: `translate(${translateX}px, ${translateY}px) rotate(${rotation}deg) scale(${currentScale})`,
+        };
+      });
     }
   },
   mounted() {
+    this.calculateInitialPositions();
+    this.updateImageElements().then(() => {
+      this.setSectionHeight();
+    });
+    this.startAnimationFrame();
+    window.addEventListener('resize', this.handleResize);
+
+    // Existing tour dates logic
     const venues = [
       { city: 'Berlin', venue: 'Huxleys', soldOut: false, link: '#' },
       { city: 'Hamburg', venue: 'Uebel & Gefährlich', soldOut: true, link: '#' },
@@ -71,27 +123,161 @@ export default {
       { city: 'München', venue: 'Backstage', soldOut: false, link: '#' },
       { city: 'Wien', venue: 'Flex', soldOut: false, link: '#' },
     ];
-
     const formatDate = (date) => {
       const day = String(date.getDate()).padStart(2, '0');
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const year = date.getFullYear();
       return `${day}.${month}.${year}`;
     };
-
     const today = new Date();
     let runningDate = new Date();
-    runningDate.setMonth(today.getMonth() + 2); // First date is 2 months from today
-
+    runningDate.setMonth(today.getMonth() + 2);
     this.tourDates = venues.map((venue, index) => {
-      if (index > 0) {
-        runningDate.setDate(runningDate.getDate() + 3);
-      }
-      return {
-        ...venue,
-        date: formatDate(new Date(runningDate))
-      };
+      if (index > 0) runningDate.setDate(runningDate.getDate() + 3);
+      return { ...venue, date: formatDate(new Date(runningDate)) };
     });
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.handleResize);
+    this.stopAnimationFrame();
+  },
+  methods: {
+    handleResize() {
+      this.calculateInitialPositions();
+      this.updateImageElements().then(() => {
+        this.setSectionHeight();
+      });
+    },
+    calculateInitialPositions() {
+      const container = this.$el.querySelector('.pinwand-section');
+      if (!container) return;
+      this.pinwandImages.forEach(img => {
+        img.topPx = container.clientHeight * img.top;
+        img.leftPx = container.clientWidth * img.left;
+      });
+    },
+    updateImageElements() {
+      return this.$nextTick().then(() => {
+        this.imageElements = this.$el.querySelectorAll('.pinwand-image');
+      });
+    },
+    setSectionHeight() {
+        if (!this.imageElements.length) return;
+        
+        let maxBottom = 0;
+        this.imageElements.forEach((el, index) => {
+            const img = this.pinwandImages[index];
+            const restingBottom = img.topPx + el.offsetHeight;
+            if (restingBottom > maxBottom) {
+                maxBottom = restingBottom;
+            }
+        });
+
+        const container = this.$el.querySelector('.pinwand-section');
+        const minHeight = window.innerHeight;
+        const requiredHeight = maxBottom + 50; // 50px padding
+        container.style.height = `${Math.max(requiredHeight, minHeight)}px`;
+    },
+    handleMouseMove: throttle(function(event) {
+      this.mouse.x = event.clientX;
+      this.mouse.y = event.clientY;
+    }, 16),
+
+    startAnimationFrame() {
+      const animate = () => {
+        this.updateImageTransforms();
+        this.animationFrameId = requestAnimationFrame(animate);
+      };
+      this.animationFrameId = requestAnimationFrame(animate);
+    },
+
+    stopAnimationFrame() {
+      cancelAnimationFrame(this.animationFrameId);
+    },
+
+    lerp(start, end, amt) {
+      return (1 - amt) * start + amt * end;
+    },
+
+    updateImageTransforms() {
+      if (!this.imageElements.length) return;
+
+      this.imageElements.forEach((el, index) => {
+        const image = this.pinwandImages[index];
+        const rect = el.getBoundingClientRect();
+        if (rect.width === 0) return;
+        
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        
+        const dx = this.mouse.x - centerX;
+        const dy = this.mouse.y - centerY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        const maxDist = 400;
+        const scaleFactor = Math.max(0, 1 - distance / maxDist);
+        
+        const baseScale = 1;
+        const hoverScale = 1.2;
+        image.currentScale = baseScale + (hoverScale - baseScale) * scaleFactor;
+      });
+
+      const translations = this.pinwandImages.map(() => ({x: 0, y: 0}));
+
+      this.imageElements.forEach((el_i, i) => {
+        const rect_i = el_i.getBoundingClientRect();
+        if (rect_i.width === 0) return;
+        const centerX_i = rect_i.left + rect_i.width / 2;
+        const centerY_i = rect_i.top + rect_i.height / 2;
+
+        this.imageElements.forEach((el_j, j) => {
+          if (i === j) return;
+
+          const rect_j = el_j.getBoundingClientRect();
+          if (rect_j.width === 0) return;
+          const centerX_j = rect_j.left + rect_j.width / 2;
+          const centerY_j = rect_j.top + rect_j.height / 2;
+
+          const pushDx = centerX_i - centerX_j;
+          const pushDy = centerY_i - centerY_j;
+          const pushDist = Math.sqrt(pushDx * pushDx + pushDy * pushDy);
+
+          const maxPushDist = (rect_i.width + rect_j.width) / 2 + 30;
+          
+          if (pushDist < maxPushDist) {
+            const scaleFactorOfPusher = this.pinwandImages[j].currentScale - 1;
+            const pushFactor = (1 - pushDist / maxPushDist);
+            const pushAmount = pushFactor * 150 * scaleFactorOfPusher;
+            
+            if (pushAmount > 0.1) {
+              const angle = Math.atan2(pushDy, pushDx);
+              translations[i].x += Math.cos(angle) * pushAmount;
+              translations[i].y += Math.sin(angle) * pushAmount;
+            }
+          }
+        });
+      });
+
+      this.pinwandImages.forEach((image, index) => {
+        image.translateX = this.lerp(image.translateX, translations[index].x, 0.1);
+        image.translateY = this.lerp(image.translateY, translations[index].y, 0.1);
+      });
+    },
+
+    resetImageTransforms() {
+      this.pinwandImages.forEach(img => {
+        img.currentScale = 1;
+        img.translateX = this.lerp(img.translateX, 0, 0.1);
+        img.translateY = this.lerp(img.translateY, 0, 0.1);
+      });
+    },
+
+    handleMouseOver(hoveredIndex) {
+      this.maxZIndex += 1;
+      this.pinwandImages.forEach((img, index) => {
+        img.zIndex = index === hoveredIndex ? this.maxZIndex : img.zIndex;
+      });
+    }
   }
 }
 </script>
@@ -126,7 +312,6 @@ export default {
   justify-content: center;
   position: relative;
   overflow: hidden;
-  /* Hier wurde der Pfad zu deinem neuen Bild angepasst */
   background: url('@/assets/Souly_main.jpg') center/cover; 
 }
 
@@ -180,6 +365,23 @@ export default {
 .btn:hover {
   opacity: 0.7;
   transform: translateY(-2px);
+}
+
+/* Pinwand Section */
+.pinwand-section {
+  min-height: 100vh;
+  background: url('@/assets/PinWand.jpg') center/cover no-repeat;
+  position: relative;
+  padding: 0;
+}
+
+.pinwand-image {
+  position: absolute;
+  border: 4px solid white;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  cursor: pointer;
+  /* Transitions are now handled by the JS animation loop */
+  transition: z-index 0s;
 }
 
 /* Music Section */
