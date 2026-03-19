@@ -3,7 +3,9 @@
     <section class="hero">
       <div class="hero-overlay"></div>
       <div class="hero-content">
-        <h1 class="main-title">SOULY</h1>
+        <h1 class="main-title">
+          <img src="@/assets/Logo_Souly_Vector.png" alt="S" class="main-title-logo">OULY
+        </h1>
         <p class="tagline">„ICH WÜNSCHTE, ES WÄR SO“</p>
         <div class="hero-cta">
           <a href="#music" class="btn primary">MUSIK HÖREN</a>
@@ -20,6 +22,7 @@
         class="pinwand-image"
         :style="imageStyles[index]"
         @mouseover="handleMouseOver(index)"
+        @load="handleImageLoad"
       />
     </section>
 
@@ -94,6 +97,7 @@ export default {
       imageElements: [],
       mouse: { x: 0, y: 0 },
       animationFrameId: null,
+      loadedImagesCount: 0,
     }
   },
   computed: {
@@ -113,9 +117,7 @@ export default {
   },
   mounted() {
     this.calculateInitialPositions();
-    this.updateImageElements().then(() => {
-      this.setSectionHeight();
-    });
+    this.updateImageElements();
     this.startAnimationFrame();
     window.addEventListener('resize', this.handleResize);
 
@@ -146,6 +148,12 @@ export default {
     this.stopAnimationFrame();
   },
   methods: {
+    handleImageLoad() {
+      this.loadedImagesCount++;
+      if (this.loadedImagesCount === this.pinwandImages.length) {
+        this.setSectionHeight();
+      }
+    },
     handleResize() {
       this.calculateInitialPositions();
       this.updateImageElements().then(() => {
@@ -272,6 +280,7 @@ export default {
       this.pinwandImages.forEach(img => {
         img.currentScale = 1;
         img.translateX = this.lerp(img.translateX, 0, 0.1);
+
         img.translateY = this.lerp(img.translateY, 0, 0.1);
       });
     },
@@ -296,6 +305,7 @@ export default {
 
 .section {
   padding: 100px 10%;
+  scroll-margin-top: 5rem;
 }
 
 .section-label {
@@ -332,10 +342,19 @@ export default {
 }
 
 .main-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: clamp(4rem, 15vw, 10rem);
   font-weight: 900;
   margin: 0;
   letter-spacing: -2px;
+}
+
+.main-title-logo {
+  height: 2em;
+  width: auto;
+  margin-right: -0.25em;
 }
 
 .tagline {

@@ -1,7 +1,9 @@
 <template>
   <div id="app">
     <nav class="navbar">
-      <router-link to="/" class="logo">SOULY</router-link>
+      <router-link to="/" class="logo">
+        <img src="@/assets/Logo_Souly_Vector.png" alt="Souly Logo" class="logo-img">
+      </router-link>
       <div class="nav-links">
         <router-link to="/">Home</router-link>
         <router-link to="/about">Story</router-link>
@@ -49,9 +51,12 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 2rem 10%;
+  padding: 2rem 2.2%;
   position: fixed;
-  width: 80%;
+  width: 100%;
+  left: 0;
+  right: 0;
+  box-sizing: border-box;
   z-index: 100;
   background: linear-gradient(to bottom, rgba(10,10,10,0.8), transparent);
 }
@@ -59,9 +64,13 @@ body {
 .logo {
   font-size: 1.5rem;
   font-weight: 800;
-  letter-spacing: 5px;
   color: var(--primary);
   text-decoration: none;
+}
+
+.logo-img {
+  height: 90px;
+  width: auto;
 }
 
 .nav-links a {
