@@ -24,41 +24,45 @@
     </section>
 
     <section id="music" class="section music-section">
-      <h2 class="section-label">Latest Releases</h2>
-      <div class="music-grid">
-        <div class="spotify-container">
-          <iframe 
-            src="https://open.spotify.com/embed/artist/1fImPZoBVjmYrBFzCHh0N3?utm_source=generator&theme=0" 
-            width="100%" 
-            height="380" 
-            frameBorder="0" 
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-            loading="lazy">
-          </iframe>
-        </div>
-        
-        <div class="featured-info">
-          <h3>SOULEYMAN</h3>
-          <p>Das neue Projekt ist jetzt auf allen Streaming-Plattformen verfügbar. Einzigartiger Sound, tiefgreifende Texte – die Evolution eines Künstlers.</p>
-          <div class="links">
-            <a href="https://music.apple.com/at/artist/souly/1451179227" target="_blank" class="platform-link">Apple Music</a>
-            <a href="https://open.spotify.com/intl-de/artist/1fImPZoBVjmYrBFzCHh0N3" target="_blank" class="platform-link">Spotify</a>
-            <a href="https://www.deezer.com/de/artist/12523984" target="_blank" class="platform-link">Deezer</a>
+      <div class="content-wrapper">
+        <h2 class="section-label">Latest Releases</h2>
+        <div class="music-grid">
+          <div class="spotify-container">
+            <iframe 
+              src="https://open.spotify.com/embed/artist/1fImPZoBVjmYrBFzCHh0N3?utm_source=generator&theme=0" 
+              width="100%" 
+              height="380" 
+              frameBorder="0" 
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+              loading="lazy">
+            </iframe>
+          </div>
+          
+          <div class="featured-info">
+            <h3>SOULEYMAN</h3>
+            <p>Das neue Projekt ist jetzt auf allen Streaming-Plattformen verfügbar. Einzigartiger Sound, tiefgreifende Texte – die Evolution eines Künstlers.</p>
+            <div class="links">
+              <a href="https://music.apple.com/at/artist/souly/1451179227" target="_blank" class="platform-link">Apple Music</a>
+              <a href="https://open.spotify.com/intl-de/artist/1fImPZoBVjmYrBFzCHh0N3" target="_blank" class="platform-link">Spotify</a>
+              <a href="https://www.deezer.com/de/artist/12523984" target="_blank" class="platform-link">Deezer</a>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
     <section id="tour" class="section tour-section">
-      <h2 class="section-label">Live</h2>
-      <div class="tour-list">
-        <div v-for="(show, index) in tourDates" :key="index" class="tour-item">
-          <div class="tour-date">{{ show.date }}</div>
-          <div class="tour-city">{{ show.city }}</div>
-          <div class="tour-venue">{{ show.venue }}</div>
-          <div class="tour-status">
-            <router-link v-if="!show.soldOut" :to="`/tickets/${show.city}`" class="ticket-btn">TICKETS</router-link>
-            <span v-else class="sold-out">AUSVERKAUFT</span>
+      <div class="content-wrapper">
+        <h2 class="section-label">Live</h2>
+        <div class="tour-list">
+          <div v-for="(show, index) in tourDates" :key="index" class="tour-item">
+            <div class="tour-date">{{ show.date }}</div>
+            <div class="tour-city">{{ show.city }}</div>
+            <div class="tour-venue">{{ show.venue }}</div>
+            <div class="tour-status">
+              <router-link v-if="!show.soldOut" :to="`/tickets/${show.city}`" class="ticket-btn">TICKETS</router-link>
+              <span v-else class="sold-out">AUSVERKAUFT</span>
+            </div>
           </div>
         </div>
       </div>
@@ -382,6 +386,12 @@ export default {
   cursor: pointer;
   /* Transitions are now handled by the JS animation loop */
   transition: z-index 0s;
+}
+
+.content-wrapper {
+  border: 1px solid #666;
+  border-radius: 20px;
+  padding: 40px;
 }
 
 /* Music Section */
